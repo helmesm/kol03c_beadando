@@ -1,40 +1,35 @@
 #!/bin/bash
 curl_function() {
-curl -i https://drive.google.com/file/d/11bWJvche1QK2dSCzjmp6zbNSvRDU9cRa/view?usp=sharing -o szoveg.rtf
-echo "Letöltés sikeres"
-ls
+curl https://cat-fact.herokuapp.com/facts -o response.json
 }
-file_function() {
-echo "Két fájl létrehozva (Autok.rtf, Üzemanyag.rtf)"
-printf "Ford\n Porsche\n Ferrari\n Audi\n Alfa Romeo"> Autok.rtf
-printf "Benzin\n Dízel\n Hybrid\n Elektromos\n CNG"> Üzemanyag.rtf
-}
-sz_function() {
-fileName=$1
-if [[ -f $fileName ]]
+szures_function(){
+if [ ! -f response.json ]
 then
-	echo "Szó amit keresne: "
-	read grepvar
-	cat $fileName|grep $grepvar
-else
-	echo "$fileName nem létezik!"
+echo "Nem létezik a fájl"
+exit
 fi
+number=$(cat response.json | jq ".| length")
+for i in $(seq 0 1 $(($number-1)))
+do
+cat response.json | jq .[$i].text | tr -d \\\"
+done
 }
-help_function() {
-echo " -a Autok.rtf megynitása"
-echo " -o  Üzemanyagok.rtf megnyitása"
+help_function(){
+cat << END
+$0 [opciók]
+
+c Macskák érdekességeinek letöltése
+s Szűrés
+h Segítség
+
+END
 }
-while getopts :omhcs:f opt;do
+while getopts :hcs opt;do
   case $opt in
-	a)
-		nano Autok.rtf;;
-	o)
-		nano Üzemanyag.rtf;;
 	c)
 		curl_function;;
 	s)
-		sz_function $OPTARG;;
-	:)	echo "A kapcsoló várja az értéket: $OPTARG";;
+		szures_function;;
 	h)
 		help_function;;
 	*)
